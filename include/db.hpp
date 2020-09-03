@@ -37,12 +37,14 @@ public:
         return _size;
     }
 
-    bool operator==(Slice& b) {
-        if (b.size() == this->_size) {
-            return memcmp(this->_data, b.data(), b.size()) == 0;
+    bool operator==(const Slice& b) {
+        if (b.size() == this->_size && memcmp(this->_data, b.data(), b.size()) == 0) {
+            return true;
+        } else {
+            return false;
         }
-        return false;
     }
+    
     std::string to_string() {
         return std::string(_data, _size);
     }

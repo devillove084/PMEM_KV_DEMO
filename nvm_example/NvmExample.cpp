@@ -1,7 +1,9 @@
 #include "NvmExample.hpp"
-
+#ifdef USE_LIBPMEM
 #include <libpmem.h>
+#endif
 
+#include <sys/mman.h>
 #include <cstdio>
 #include <cstring>
 #include <mutex>
@@ -42,6 +44,7 @@ void LogAppender::RecoveryHelper::_get_slice(Slice& slice) {
 }
 
 LogAppender::LogAppender(const char* file_name, size_t size) {
+#ifdef USE_LIBPMEM
     if ((_pmem.pmem_base = (char*)pmem_map_file(file_name, size,
                                                 PMEM_FILE_CREATE,
                                                 0666, &_mapped_len,
@@ -49,6 +52,12 @@ LogAppender::LogAppender(const char* file_name, size_t size) {
         perror("Pmem map file failed");
         exit(1);
     }
+#else
+    if((_pmem.pmem_base = (char*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, 0, 0)) == NULL) {
+        perror("mmap failed");
+        exit(1);
+    }
+#endif
 }
 
 void LogAppender::Recovery(std::unordered_map<std::string, Slice>& hash_map) {
@@ -69,14 +78,21 @@ std::pair<Slice, Slice> LogAppender::Append(const Slice& key, const Slice& val) 
 }
 
 LogAppender::~LogAppender() {
+
+#ifdef USE_LIBPMEM
     pmem_unmap(_pmem.pmem_base, _mapped_len);
+#else
+    munmap(_pmem.pmem_base, _mapped_len);
+#endif
 }
 
 void LogAppender::_persist(void* addr, uint32_t len) {
+#ifdef USE_LIBPMEM
     if (_is_pmem)
         pmem_persist(addr, len);
     else
         pmem_msync(addr, len);
+#endif
 }
 
 Slice LogAppender::_push_back(const Slice& slice) {

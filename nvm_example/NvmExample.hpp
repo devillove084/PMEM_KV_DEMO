@@ -1,7 +1,8 @@
 #ifndef TAIR_CONTEST_KV_CONTEST_NVM_ENGINE_H_
 #define TAIR_CONTEST_KV_CONTEST_NVM_ENGINE_H_
-
+#ifdef USE_LIBPMEM
 #include <libpmem.h>
+#endif
 
 #include <cstdio>
 #include <cstring>
@@ -38,7 +39,9 @@ private:
         char* pmem_base;
     } _pmem;
     size_t _mapped_len;
+#ifdef USE_LIBPMEM
     int _is_pmem;
+#endif
     uint64_t _end_off;
 };
 
