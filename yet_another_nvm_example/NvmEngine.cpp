@@ -1,10 +1,7 @@
 #include "NvmEngine.hpp"
 
 #include <libpmem.h>
-#include <libpmempool.h>
-#include <libpmemobj.h>
 #include <sys/mman.h>
-#include <iostream>
 
 #include <cassert>
 

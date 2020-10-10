@@ -1,5 +1,4 @@
-#ifndef TAIR_CONTEST_INCLUDE_DB_H_
-#define TAIR_CONTEST_INCLUDE_DB_H_
+#pragma once
 
 #include <cstdio>
 #include <cstring>
@@ -44,7 +43,7 @@ public:
             return false;
         }
     }
-    
+
     std::string to_string() {
         return std::string(_data, _size);
     }
@@ -64,7 +63,7 @@ public:
      *  Create or recover db from pmem-file.
      *  It's not required to implement the recovery in round 1.
      *  You can assume that the file does not exist.
-     *  You should write your log to the log_file. 
+     *  You should write your log to the log_file.
      *  Stdout, stderr would be redirect to /dev/null.
      */
     static Status CreateOrOpen(const std::string& name, DB** dbptr, FILE* log_file = nullptr);
@@ -77,7 +76,7 @@ public:
 
     /*
      *  Set key to hold the string value.
-     *  If key already holds a value, it is overwritten. 
+     *  If key already holds a value, it is overwritten.
      */
     virtual Status Set(const Slice& key, const Slice& value) = 0;
 
@@ -85,6 +84,5 @@ public:
      * Close the db on exit.
      */
     virtual ~DB() = 0;
-};
 
-#endif
+};

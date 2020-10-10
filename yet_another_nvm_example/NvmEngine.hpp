@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TAIR_CONTEST_KV_CONTEST_NVM_ENGINE_H_
+#define TAIR_CONTEST_KV_CONTEST_NVM_ENGINE_H_
 
 #include <atomic>
 #include <climits>
@@ -12,7 +13,7 @@
 class NvmEngine : DB {
 public:
     /**
-     * @param
+     * @param 
      * name: file in AEP(exist)
      * dbptr: pointer of db object
      *
@@ -41,3 +42,5 @@ private:
     std::atomic<uint32_t> entry_cnt = {1};
     std::mutex slot_mut[MUTEX_CNT];
 };
+
+#endif
