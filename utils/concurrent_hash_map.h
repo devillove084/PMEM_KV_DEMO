@@ -32,9 +32,11 @@ namespace concurrent_hash_map {
 
         Value& operator[](const Key &key);
 
-        unsigned long size();
+        size_t size();
 
-        unsigned long erase(const Key &key);
+        size_t erase(const Key &key);
+
+        bool contains(const Key &key);
 
     };
     template<class Key, class Value>
@@ -83,14 +85,20 @@ namespace concurrent_hash_map {
     }
 
     template<class Key, class Value>
-    unsigned long ThreadSafeHashMap<Key, Value>::size() {
+    size_t ThreadSafeHashMap<Key, Value>::size() {
+        lock_guard<mutex> lock(m_mutex);
         return m_map.size();
     }
 
     template<class Key, class Value>
-    unsigned long ThreadSafeHashMap<Key, Value>::erase(const Key &key) {
+    size_t ThreadSafeHashMap<Key, Value>::erase(const Key &key) {
         lock_guard<mutex> lock(m_mutex);
         return m_map.erase(key);
+    }
+
+    template<class Key, class Value>
+    bool ThreadSafeHashMap<Key, Value>::contains(const Key &key) {
+        return m_map.find(key) != m_map.end();
     }
 }
 

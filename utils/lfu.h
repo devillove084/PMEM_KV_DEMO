@@ -7,11 +7,9 @@
 
 #include <list>
 #include <unordered_map>
-#include "concurrent_shards_hash_map.h"
 
 namespace lfu {
     using namespace std;
-    using namespace concurrent_shards_hash_map;
 
     template<class Key, class Value>
     struct Node {
@@ -24,9 +22,10 @@ namespace lfu {
 
     template<class Key, class Value>
     class LFUCache {
+        mutex m_mutex;
         int minfreq, capacity;
-        ThreadSafeHashMap<Key, typename list<Node<Key, Value>>::iterator> key_table;
-        ThreadSafeHashMap<int, list<Node<Key, Value>>> freq_table;
+        unordered_map<Key, typename list<Node<Key, Value>>::iterator> key_table;
+        unordered_map<int, list<Node<Key, Value>>> freq_table;
     public:
         LFUCache(int _capacity) {
             minfreq = 0;
@@ -43,9 +42,10 @@ namespace lfu {
 
     template <typename Key, typename Value>
     Value LFUCache<Key, Value>::get(Key key) {
-        if (capacity == 0) return NULL;
+        lock_guard<mutex> lock(m_mutex);
+        if (capacity == 0) return nullptr;
         auto it = key_table.find(key);
-        if (it == key_table.end()) return NULL;
+        if (it == key_table.end()) return nullptr;
         Node<Key, Value> node = *(it -> second);
         Value val = node.value;
         int freq = node.freq;
@@ -63,12 +63,12 @@ namespace lfu {
 
     template <typename Key, typename Value>
     void LFUCache<Key, Value>::put(Key key, Value value) {
+        lock_guard<mutex> lock(m_mutex);
         if (capacity == 0) return;
         auto it = key_table.find(key);
         if (it == key_table.end()) {
-            // 缓存已满，需要进行删除操作
+            // 缓存已满
             if (key_table.size() == capacity) {
-                // 通过 minFreq 拿到 freq_table[minFreq] 链表的末尾节点
                 auto it2 = freq_table[minfreq].back();
                 key_table.erase(it2.key);
                 freq_table[minfreq].pop_back();
@@ -80,7 +80,7 @@ namespace lfu {
             key_table[key] = freq_table[1].begin();
             minfreq = 1;
         } else {
-            // 与 get 操作基本一致，除了需要更新缓存的值
+            // key 已存在
             Node<Key, Value> node = *(it -> second);
             int freq = node.freq;
             freq_table[freq].erase(it -> second);
